@@ -67,7 +67,7 @@ The frame and chain-link mesh are spawned at the same position and rotation.
 
 - .NET SDK supported by the current CounterStrikeSharp version
 - CounterStrikeSharp API NuGet/package reference
-- Any C# IDE/editor, e.g. Rider, Visual Studio, or VS Code
+- Any C# IDE/editor
 
 ## Basic Setup
 
@@ -131,7 +131,7 @@ RegisterListener<Listeners.OnServerPrecacheResources>(manifest =>
 });
 ```
 
-After adding new resources, restart the server or change the map so the precache listener runs.
+After adding new resources, restart the server or change the map so the precaching listener runs.
 
 ## Coordinate Notes
 
@@ -161,6 +161,6 @@ The current Dust2 fence is 128 units long, so chained segments are offset by 128
 3. Use `!pos` to collect coordinates and yaw.
 4. Put those values into the wall/fence definition.
 5. Spawn a short fence chain and fine-tune X/Y/Z.
-6. Once placement is correct, save the values as part of the map's practice configuration.
+6. Once the placement is correct, save the values as part of the map's practice configuration.
 
-The next major step is implementing reliable collision independently from the visual fence models.
+The next major step is implementing reliable collision independently of the visual fence models.
