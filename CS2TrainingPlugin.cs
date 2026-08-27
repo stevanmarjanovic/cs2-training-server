@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Core.Attributes.Registration;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Entities.Constants;
 using CounterStrikeSharp.API.Modules.Utils;
+using CS2TrainingPlugin.Maps;
 
 namespace CS2TrainingPlugin;
 
@@ -16,6 +17,8 @@ public class CS2TrainingPlugin : BasePlugin
     private const string FrameModelName = "models/props/de_dust/hr_dust/dust_fences/dust_chainlink_fence_001_128.vmdl";
     private const string LinksModelName = "models/props/de_dust/hr_dust/dust_fences/dust_chainlink_fence_001_128_links.vmdl";
     private const float FenceLength = 128f;
+    
+    private int _roundAttackIndex = 0;
 
     public override void Load(bool hotReload)
     {
@@ -32,6 +35,30 @@ public class CS2TrainingPlugin : BasePlugin
         Console.WriteLine("CS2 Training plugin unloaded");
     }
 
+    [GameEventHandler]
+    public HookResult OnRoundStart(EventRoundStart @event, GameEventInfo info)
+    {
+        foreach (var wall in Dust2Walls.RoundAttacks[_roundAttackIndex])
+        {
+            var position = new Vector(wall.X, wall.Y, wall.Z);
+            CreateChainFence(position, wall.Yaw, wall.Amount);
+        }
+        
+        return HookResult.Continue;
+    }
+
+    [GameEventHandler]
+    public HookResult OnRoundEnd(EventRoundEnd @event, GameEventInfo info)
+    {
+        _roundAttackIndex++;
+        if (_roundAttackIndex == Dust2Walls.RoundAttacks.Length)
+        {
+            _roundAttackIndex = 0;
+        }
+
+        return HookResult.Continue;
+    }
+    
     /// <summary>
     /// Handles the "css_pos" console command, printing the player's current position and rotation.
     /// </summary>
@@ -60,11 +87,18 @@ public class CS2TrainingPlugin : BasePlugin
         );
     }
 
-    [ConsoleCommand("css_testprop", "Spawn a test prop")]
+    [ConsoleCommand("css_attack", "Spawn walls for a random attack")]
     public void OnTestPropCommand(CCSPlayerController? player, CommandInfo command)
     {
-        var position = new Vector(-320.07f, 1937.20f, -125.73f);
-        CreateChainFence(position, 90, 2);
+        var RandomAttack = Dust2Walls.RoundAttacks[
+            Random.Shared.Next(Dust2Walls.RoundAttacks.Length)
+        ];
+        
+        foreach (var wall in RandomAttack)
+        {
+            var position = new Vector(wall.X, wall.Y, wall.Z);
+            CreateChainFence(position, wall.Yaw, wall.Amount);
+        }
         
         command.ReplyToCommand("Test prop spawned successfully.");
     }
@@ -107,6 +141,9 @@ public class CS2TrainingPlugin : BasePlugin
 
         frame.SetModel(FrameModelName);
         links.SetModel(LinksModelName);
+        
+        links.Collision.CollisionGroup = (byte)CollisionGroup.COLLISION_GROUP_PROPS;
+        links.Collision.SolidType = SolidType_t.SOLID_VPHYSICS;
 
         var immovable = new Vector(0, 0, 0);
 
